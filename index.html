@@ -1,0 +1,2257 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IRON REBOUND — 48kg to 60kg Physique & Discipline Tracker</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js for Weight & Macro Graphs -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Canvas Confetti for Real Milestone & Surplus Celebrations -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Inter & Rajdhani (Athletic Display Font) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Rajdhani:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Rajdhani', 'sans-serif'],
+          },
+          colors: {
+            slate: {
+              850: '#151e2e',
+              900: '#0f172a',
+              950: '#070b14',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #070b14;
+      background-image:
+        radial-gradient(circle at 15% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 85% 10%, rgba(245, 158, 11, 0.07) 0%, transparent 40%);
+      color: #f8fafc;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .font-athletic {
+      font-family: 'Rajdhani', sans-serif;
+      letter-spacing: 0.02em;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(51, 65, 85, 0.65);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+    .hero-glow {
+      box-shadow: 0 0 40px -12px rgba(16, 185, 129, 0.25);
+    }
+    @keyframes pulse-border {
+      0%, 100% { border-color: rgba(245, 158, 11, 0.45); }
+      50% { border-color: rgba(245, 158, 11, 0.95); }
+    }
+    .reminder-pulse {
+      animation: pulse-border 2.5s infinite;
+    }
+    @keyframes float-slow {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-4px); }
+    }
+    .physique-float {
+      animation: float-slow 3.8s ease-in-out infinite;
+    }
+    @keyframes shine-sweep {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(200%); }
+    }
+    .xp-shimmer {
+      position: relative;
+      overflow: hidden;
+    }
+    .xp-shimmer::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 50%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent);
+      animation: shine-sweep 2.8s infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col pb-20 md:pb-8">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-xs w-full pointer-events-none"></div>
+
+  <!-- Milestone / Level-Up Celebration Modal -->
+  <div id="celebration-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-md p-4">
+    <div class="glass-card rounded-3xl max-w-md w-full p-7 text-center border-2 border-amber-400/70 shadow-2xl relative overflow-hidden">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
+        <i data-lucide="trophy" class="w-9 h-9 text-slate-950"></i>
+      </div>
+      <span id="cel-badge" class="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-extrabold uppercase tracking-widest">LEVEL UP UNLOCKED</span>
+      <h2 id="cel-title" class="font-athletic text-3xl font-extrabold text-white mt-3">52.0 KG RECLAIMED!</h2>
+      <p id="cel-desc" class="text-sm text-slate-300 mt-2 leading-relaxed">You bounced back from illness and built real muscle mass. Your discipline is paying off!</p>
+      <div id="cel-reward-box" class="mt-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-300 font-semibold">
+        🎁 Real-World Reward Unlocked: Treat yourself to a fitted athletic tee or double egg feast!
+      </div>
+      <button onclick="closeCelebrationModal()" class="mt-6 w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold text-sm uppercase tracking-wider transition shadow-lg">
+        Claim Victory & Keep Pushing 💪
+      </button>
+    </div>
+  </div>
+
+  <!-- Custom Confirmation Modal -->
+  <div id="confirm-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+    <div class="glass-card rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-700">
+      <h3 id="confirm-title" class="text-lg font-bold text-white mb-2">Confirm Action</h3>
+      <p id="confirm-message" class="text-sm text-slate-300 mb-6">Are you sure?</p>
+      <div class="flex justify-end gap-3">
+        <button id="confirm-cancel-btn" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium transition">Cancel</button>
+        <button id="confirm-ok-btn" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-sm font-semibold transition">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Target Settings Modal -->
+  <div id="targets-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+    <div class="glass-card rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-700">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <i data-lucide="sliders" class="w-5 h-5 text-emerald-400"></i> Fixed Nutrition & Physique Goals
+        </h3>
+        <button onclick="closeTargetsModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <form id="targets-form" class="space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Daily Calories (kcal)</label>
+            <input type="number" id="set-calories" required min="1200" max="5000" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Daily Protein (g)</label>
+            <input type="number" id="set-protein" required min="30" max="300" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Daily Carbs (g)</label>
+            <input type="number" id="set-carbs" required min="50" max="700" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Daily Fats (g)</label>
+            <input type="number" id="set-fats" required min="20" max="200" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Peak Reclaim Milestone (kg)</label>
+            <input type="number" step="0.1" id="set-milestone" required class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Ultimate Physique Goal (kg)</label>
+            <input type="number" step="0.1" id="set-goal-weight" required class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500" />
+          </div>
+        </div>
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeTargetsModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium">Cancel</button>
+          <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold">Lock In Targets</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-40 glass-card border-b border-slate-800 px-4 py-3">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <!-- Brand & Rank -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 via-teal-500 to-amber-500 flex items-center justify-center shadow-lg shadow-emerald-500/25">
+          <i data-lucide="flame" class="w-6 h-6 text-slate-950 fill-slate-950"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-athletic text-xl sm:text-2xl font-extrabold tracking-wide text-white uppercase">IRON REBOUND</h1>
+            <span id="rank-badge-pill" class="px-2.5 py-0.5 text-[11px] font-extrabold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 uppercase tracking-wider">LVL 1 • COMEBACK FIGHTER</span>
+          </div>
+          <p class="text-xs text-slate-400">48.0 kg → 59.0 kg • Real Body, Real Discipline, Zero Excuses</p>
+        </div>
+      </div>
+
+      <!-- Date Selector & Instant Discipline Pushup Trigger -->
+      <div class="flex items-center gap-2">
+        <button onclick="logEmergencyDisciplinePushups()" title="Redirect urge/distraction into instant muscle!" class="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/40 text-xs font-extrabold text-amber-300 transition">
+          <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400"></i> +15 Pushups Focus Boost
+        </button>
+
+        <div class="flex items-center bg-slate-900 border border-slate-700 rounded-xl p-1">
+          <button onclick="changeSelectedDate(-1)" title="Previous Day" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition">
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          </button>
+          <input type="date" id="active-date-picker" class="bg-transparent text-xs sm:text-sm font-semibold text-white px-2 focus:outline-none cursor-pointer" />
+          <button onclick="changeSelectedDate(1)" title="Next Day" class="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition">
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <button onclick="openTargetsModal()" title="Configure Fixed Targets" class="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-emerald-400 transition">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== HERO: REAL BODY EVOLUTION & MOTIVATION HUD ==================== -->
+  <section class="max-w-6xl w-full mx-auto px-4 pt-4">
+    <div class="glass-card hero-glow rounded-3xl p-4 sm:p-6 border border-emerald-500/30 relative overflow-hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+
+        <!-- Left (4 Cols): Evolving Physique Silhouette Avatar -->
+        <div class="lg:col-span-4 flex items-center gap-4 bg-slate-950/70 rounded-2xl p-4 border border-slate-800/90">
+          <!-- Dynamic SVG Physique Silhouette that visibly widens shoulders, chest, arms & quads as kg rises -->
+          <div class="w-24 h-32 shrink-0 flex items-center justify-center relative bg-gradient-to-b from-emerald-500/10 to-slate-900 rounded-2xl border border-emerald-500/20 physique-float">
+            <svg id="physique-svg" viewBox="0 0 120 160" class="w-20 h-28">
+              <defs>
+                <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#34d399" />
+                  <stop offset="60%" stop-color="#10b981" />
+                  <stop offset="100%" stop-color="#059669" />
+                </linearGradient>
+                <filter id="glowBody">
+                  <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+                  <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                  </feMerge>
+                </filter>
+              </defs>
+              <!-- Head -->
+              <circle cx="60" cy="22" r="11" fill="url(#bodyGrad)" filter="url(#glowBody)" />
+              <!-- Neck / Traps -->
+              <rect id="svg-traps" x="53" y="32" width="14" height="8" rx="3" fill="url(#bodyGrad)" />
+              <!-- Torso / Chest & V-Taper (Dynamically adjusted by JS) -->
+              <path id="svg-torso" d="M 38 40 L 82 40 L 74 84 L 46 84 Z" fill="url(#bodyGrad)" filter="url(#glowBody)" />
+              <!-- Left & Right Arms (Dynamically thickened by JS) -->
+              <rect id="svg-arm-l" x="27" y="41" width="9" height="42" rx="4.5" fill="url(#bodyGrad)" />
+              <rect id="svg-arm-r" x="84" y="41" width="9" height="42" rx="4.5" fill="url(#bodyGrad)" />
+              <!-- Left & Right Quads/Legs (Dynamically thickened by JS) -->
+              <rect id="svg-leg-l" x="46" y="86" width="12" height="58" rx="5" fill="url(#bodyGrad)" />
+              <rect id="svg-leg-r" x="62" y="86" width="12" height="58" rx="5" fill="url(#bodyGrad)" />
+            </svg>
+            <span id="svg-stage-tag" class="absolute bottom-1.5 text-[9px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-950/90 text-emerald-400 border border-emerald-500/30">Stage 1</span>
+          </div>
+
+          <!-- Physique Stats -->
+          <div class="min-w-0 flex-1">
+            <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-400">Current Physique Frame</p>
+            <div class="flex items-baseline gap-2 mt-0.5">
+              <span id="hero-weight-num" class="font-athletic text-3xl sm:text-4xl font-extrabold text-white">48.0</span>
+              <span class="text-sm font-bold text-slate-400">kg</span>
+              <span id="hero-gained-pill" class="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400">+0.0 kg</span>
+            </div>
+            <p id="hero-physique-desc" class="text-xs text-slate-300 mt-1 font-medium">Lean Rebound Frame • Filling chest, shoulders & quads</p>
+            <div class="mt-2.5 pt-2 border-t border-slate-800/80">
+              <div class="flex justify-between items-center text-[10px] font-bold text-slate-400 mb-1">
+                <span>Weight Trend</span>
+                <span id="hero-next-milestone-txt" class="text-amber-400">Next: 52.0 kg Peak</span>
+              </div>
+              <div class="h-16 w-full relative">
+                <canvas id="heroPhysiqueChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Middle (5 Cols): Daily War-Cry & Mass XP Level Progress -->
+        <div class="lg:col-span-5 space-y-3">
+          <div class="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[10px] font-extrabold uppercase tracking-widest text-amber-400 flex items-center gap-1">
+                <i data-lucide="quote" class="w-3 h-3"></i> Daily Comeback Mindset
+              </span>
+              <button onclick="rotateMotivationalQuote()" class="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 transition">
+                <i data-lucide="refresh-cw" class="w-3 h-3"></i> Next
+              </button>
+            </div>
+            <p id="daily-war-cry" class="text-xs sm:text-sm font-semibold text-slate-100 italic leading-relaxed">
+              "Illness took 4 kg from you, not your willpower. Every spoon of sattu, every boiled egg, and every slow push-up builds a stronger, broader body than September."
+            </p>
+          </div>
+
+          <!-- Mass XP & Streak Bar -->
+          <div class="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800">
+            <div class="flex items-center justify-between text-xs mb-1.5">
+              <span class="font-bold text-white flex items-center gap-1.5">
+                <i data-lucide="award" class="w-4 h-4 text-amber-400"></i>
+                <span id="xp-rank-title">Rank 1: Comeback Fighter</span>
+              </span>
+              <span id="xp-counter-label" class="font-mono font-bold text-amber-400">0 / 500 XP</span>
+            </div>
+            <div class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
+              <div id="xp-progress-bar" class="xp-shimmer h-full bg-gradient-to-r from-amber-500 via-orange-400 to-emerald-400 rounded-full transition-all duration-500" style="width: 10%"></div>
+            </div>
+            <div class="flex justify-between text-[11px] text-slate-400 mt-1.5">
+              <span id="streak-days-label">🔥 0-Day Surplus Streak</span>
+              <span>Earn XP: +20/Meal • +150/Workout • +300/Scale Gain</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right (3 Cols): Anabolic Readiness Score & Quick Pushup Button -->
+        <div class="lg:col-span-3 flex flex-col justify-between gap-3 bg-slate-950/70 rounded-2xl p-4 border border-slate-800">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Today's Growth Power</p>
+              <p id="anabolic-score-val" class="font-athletic text-3xl font-extrabold text-emerald-400 mt-0.5">0%</p>
+            </div>
+            <div id="anabolic-status-icon" class="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+              <i data-lucide="battery-charging" class="w-6 h-6"></i>
+            </div>
+          </div>
+          <p id="anabolic-status-msg" class="text-xs text-slate-300">Feed your muscles! Hit 2,450 kcal + 95g protein to trigger real tissue growth.</p>
+          <button onclick="logEmergencyDisciplinePushups()" class="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-extrabold text-xs uppercase tracking-wider transition shadow-md flex items-center justify-center gap-1.5">
+            <i data-lucide="flame" class="w-3.5 h-3.5 fill-slate-950"></i> Do 15 Pushups Now (+50 XP)
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Smart Eat-More & Hydration Reminder Banner -->
+  <div id="smart-reminder-banner" class="max-w-6xl w-full mx-auto px-4 pt-3">
+    <div class="glass-card reminder-pulse rounded-2xl p-3.5 sm:p-4 border border-amber-500/40 bg-gradient-to-r from-amber-500/10 via-slate-900 to-slate-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="flex items-start sm:items-center gap-3">
+        <div class="p-2.5 rounded-xl bg-amber-500/20 text-amber-400 shrink-0">
+          <i data-lucide="bell-ring" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-400" id="reminder-feed-tag">Next Feed Window</span>
+            <span id="reminder-deficit-badge" class="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-800 text-slate-300">2,450 kcal left</span>
+          </div>
+          <p id="reminder-message" class="text-sm text-slate-200 mt-0.5 font-medium">Loading your next small PG feed recommendation...</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
+        <button id="toggle-sound-reminder-btn" onclick="toggleHourlyChime()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition">
+          <i data-lucide="volume-2" class="w-3.5 h-3.5 text-amber-400"></i>
+          <span id="sound-reminder-label">Reminders: ON</span>
+        </button>
+        <button onclick="quickLogSuggestedFeed()" class="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold transition shadow-lg shadow-emerald-500/20">
+          + Eat Suggested Feed
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <nav class="max-w-6xl w-full mx-auto px-4 pt-4">
+    <div class="grid grid-cols-5 gap-1.5 sm:gap-2 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
+      <button onclick="switchTab('nutrition')" id="tab-btn-nutrition" class="tab-btn flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition bg-emerald-600 text-white shadow">
+        <i data-lucide="utensils" class="w-4 h-4"></i> <span>Fuel & Diet</span>
+      </button>
+      <button onclick="switchTab('workout')" id="tab-btn-workout" class="tab-btn flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition">
+        <i data-lucide="dumbbell" class="w-4 h-4"></i> <span>Strength</span>
+      </button>
+      <button onclick="switchTab('analytics')" id="tab-btn-analytics" class="tab-btn flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition">
+        <i data-lucide="trending-up" class="w-4 h-4"></i> <span>Scale & Graphs</span>
+      </button>
+      <button onclick="switchTab('rewards')" id="tab-btn-rewards" class="tab-btn flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition">
+        <i data-lucide="trophy" class="w-4 h-4"></i> <span>Rewards</span>
+      </button>
+      <button onclick="switchTab('timeline')" id="tab-btn-timeline" class="tab-btn flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition">
+        <i data-lucide="calendar-clock" class="w-4 h-4"></i> <span>Timeline</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT AREA -->
+  <main class="max-w-6xl w-full mx-auto px-4 py-5 flex-1">
+
+    <!-- ==================== TAB 1: DAILY NUTRITION & MACROS ==================== -->
+    <section id="tab-nutrition" class="space-y-6">
+      <!-- Fixed Daily Macro Progress Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Calories Card -->
+        <div class="glass-card rounded-2xl p-4 relative overflow-hidden">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Surplus Calories</p>
+              <div class="flex items-baseline gap-1.5 mt-1">
+                <span id="val-calories" class="font-athletic text-3xl font-extrabold text-white">0</span>
+                <span id="target-calories-disp" class="text-xs font-medium text-slate-400">/ 2450 kcal</span>
+              </div>
+            </div>
+            <div class="p-2 rounded-xl bg-emerald-500/15 text-emerald-400">
+              <i data-lucide="flame" class="w-5 h-5"></i>
+            </div>
+          </div>
+          <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden mt-3">
+            <div id="bar-calories" class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+          <p id="rem-calories" class="text-xs text-slate-400 mt-2">2,450 kcal remaining to surplus</p>
+        </div>
+
+        <!-- Protein Card -->
+        <div class="glass-card rounded-2xl p-4 relative overflow-hidden">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Muscle Protein</p>
+              <div class="flex items-baseline gap-1.5 mt-1">
+                <span id="val-protein" class="font-athletic text-3xl font-extrabold text-white">0g</span>
+                <span id="target-protein-disp" class="text-xs font-medium text-slate-400">/ 95g</span>
+              </div>
+            </div>
+            <div class="p-2 rounded-xl bg-sky-500/15 text-sky-400">
+              <i data-lucide="egg" class="w-5 h-5"></i>
+            </div>
+          </div>
+          <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden mt-3">
+            <div id="bar-protein" class="bg-gradient-to-r from-sky-500 to-blue-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+          <p id="rem-protein" class="text-xs text-slate-400 mt-2">95g protein remaining today</p>
+        </div>
+
+        <!-- Carbs Card -->
+        <div class="glass-card rounded-2xl p-4 relative overflow-hidden">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Glycogen Carbs</p>
+              <div class="flex items-baseline gap-1.5 mt-1">
+                <span id="val-carbs" class="font-athletic text-3xl font-extrabold text-white">0g</span>
+                <span id="target-carbs-disp" class="text-xs font-medium text-slate-400">/ 310g</span>
+              </div>
+            </div>
+            <div class="p-2 rounded-xl bg-amber-500/15 text-amber-400">
+              <i data-lucide="wheat" class="w-5 h-5"></i>
+            </div>
+          </div>
+          <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden mt-3">
+            <div id="bar-carbs" class="bg-gradient-to-r from-amber-500 to-yellow-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+          <p id="rem-carbs" class="text-xs text-slate-400 mt-2">310g carbs remaining</p>
+        </div>
+
+        <!-- Healthy Fats Card -->
+        <div class="glass-card rounded-2xl p-4 relative overflow-hidden">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Hormone Fats</p>
+              <div class="flex items-baseline gap-1.5 mt-1">
+                <span id="val-fats" class="font-athletic text-3xl font-extrabold text-white">0g</span>
+                <span id="target-fats-disp" class="text-xs font-medium text-slate-400">/ 75g</span>
+              </div>
+            </div>
+            <div class="p-2 rounded-xl bg-purple-500/15 text-purple-400">
+              <i data-lucide="droplets" class="w-5 h-5"></i>
+            </div>
+          </div>
+          <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden mt-3">
+            <div id="bar-fats" class="bg-gradient-to-r from-purple-500 to-fuchsia-400 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+          <p id="rem-fats" class="text-xs text-slate-400 mt-2">75g fats remaining</p>
+        </div>
+      </div>
+
+      <!-- PG Quick-Tap Pantry & Meal Presets + Custom Food Entry -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-4">
+          <div class="glass-card rounded-2xl p-5">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <div>
+                <h2 class="text-base font-bold text-white flex items-center gap-2">
+                  <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i> 1-Tap PG Mass-Building Feeds (+20 XP each)
+                </h2>
+                <p class="text-xs text-slate-400">Zero-blender kettle & sattu staples engineered for fast digestion and real muscle weight</p>
+              </div>
+              <span class="text-xs px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/30">6-Feed Growth Protocol</span>
+            </div>
+
+            <div id="preset-foods-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
+          </div>
+
+          <!-- Today's Eaten Food Log -->
+          <div class="glass-card rounded-2xl p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-base font-bold text-white flex items-center gap-2">
+                <i data-lucide="clipboard-list" class="w-4 h-4 text-emerald-400"></i> Fuel Consumed on <span id="food-log-date-label" class="text-emerald-400">Today</span>
+              </h2>
+              <span id="meal-count-badge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-800 text-slate-300">0 items</span>
+            </div>
+            <div id="daily-food-list" class="space-y-2.5"></div>
+          </div>
+        </div>
+
+        <!-- Right Col: Custom Meal Logger & Discipline Checklist -->
+        <div class="space-y-4">
+          <div class="glass-card rounded-2xl p-5">
+            <h2 class="text-base font-bold text-white mb-1 flex items-center gap-2">
+              <i data-lucide="plus-circle" class="w-4 h-4 text-emerald-400"></i> Log Custom Mess / Room Food
+            </h2>
+            <p class="text-xs text-slate-400 mb-4">Ate fresh amboli, extra chapati, or boiled eggs? Add it here.</p>
+
+            <form id="custom-food-form" class="space-y-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Food Name</label>
+                <input type="text" id="food-name" required placeholder="e.g. 2 Fresh Amboli + Chutney" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500" />
+              </div>
+              <div class="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label class="block text-xs font-medium text-slate-400 mb-1">Calories (kcal)*</label>
+                  <input type="number" id="food-cal" required min="1" max="3000" placeholder="320" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500" />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-400 mb-1">Protein (g)*</label>
+                  <input type="number" step="0.1" id="food-prot" required min="0" max="200" placeholder="12" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500" />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-400 mb-1">Carbs (g)</label>
+                  <input type="number" step="0.1" id="food-carbs" min="0" max="400" placeholder="45" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500" />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-400 mb-1">Fats (g)</label>
+                  <input type="number" step="0.1" id="food-fats" min="0" max="150" placeholder="8" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500" />
+                </div>
+              </div>
+              <div class="flex items-center gap-2 pt-1">
+                <input type="checkbox" id="save-as-preset" class="rounded bg-slate-900 border-slate-700 text-emerald-500 focus:ring-emerald-500" />
+                <label for="save-as-preset" class="text-xs text-slate-300">Save to my 1-Tap Pantry Presets</label>
+              </div>
+              <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm transition shadow-lg shadow-emerald-600/20">
+                + Add Fuel (+20 XP)
+              </button>
+            </form>
+          </div>
+
+          <!-- Daily Recovery & Discipline Guardrails -->
+          <div class="glass-card rounded-2xl p-5 border border-sky-500/20">
+            <h3 class="text-sm font-bold text-white mb-1 flex items-center gap-2">
+              <i data-lucide="shield-check" class="w-4 h-4 text-sky-400"></i> Warrior Discipline & Health Habits
+            </h3>
+            <p class="text-[11px] text-slate-400 mb-3">Each checked guardrail awards +25 Discipline XP</p>
+            <div id="daily-habits-list" class="space-y-2.5"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: GROUND BODYWEIGHT WORKOUTS ==================== -->
+    <section id="tab-workout" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-1 space-y-4">
+          <div class="glass-card rounded-2xl p-5">
+            <h2 class="text-base font-bold text-white mb-1 flex items-center gap-2">
+              <i data-lucide="dumbbell" class="w-4 h-4 text-emerald-400"></i> Log Strength Training
+            </h2>
+            <p class="text-xs text-slate-400 mb-4">Build real muscle thickness on the ground. Slow reps, full rest, zero wasted cardio!</p>
+
+            <form id="workout-form" class="space-y-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Exercise Name</label>
+                <input type="text" id="ex-name" required placeholder="e.g. Slow Push-Ups (3s lower)" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500" />
+              </div>
+              <div class="grid grid-cols-3 gap-2">
+                <div>
+                  <label class="block text-xs font-medium text-slate-400 mb-1">Sets</label>
+                  <input type="number" id="ex-sets" required min="1" max="20" value="4" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500" />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-400 mb-1">Reps / Sec</label>
+                  <input type="text" id="ex-reps" required placeholder="10 reps" value="10 reps" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500" />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-400 mb-1">Est. Burn</label>
+                  <input type="number" id="ex-cal" required min="0" max="1000" value="45" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Pump / Progression Notes</label>
+                <input type="text" id="ex-notes" placeholder="e.g. Chest pump strong, 90s rest" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500" />
+              </div>
+              <button type="submit" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm transition shadow-lg shadow-emerald-600/20">
+                + Log Muscle Set (+40 XP)
+              </button>
+            </form>
+          </div>
+
+          <!-- 1-Click Full Ground Routine Loader -->
+          <div class="glass-card rounded-2xl p-5 border border-emerald-500/30">
+            <h3 class="text-sm font-bold text-white mb-1">3-Day Hypertrophy Ground Routine</h3>
+            <p class="text-xs text-slate-400 mb-3">Targets chest, back, shoulders & legs (60% of body mass) to transform your frame.</p>
+            <div class="space-y-2 text-xs text-slate-300 mb-4">
+              <div class="flex justify-between p-2 rounded-lg bg-slate-900/90"><span>1. Slow Push-Ups (3s lower)</span><span class="text-emerald-400 font-semibold">4 × 10</span></div>
+              <div class="flex justify-between p-2 rounded-lg bg-slate-900/90"><span>2. Pull-Ups / Inverted Bar Rows</span><span class="text-emerald-400 font-semibold">4 × 8</span></div>
+              <div class="flex justify-between p-2 rounded-lg bg-slate-900/90"><span>3. Bulgarian Split Squats</span><span class="text-emerald-400 font-semibold">4 × 12</span></div>
+              <div class="flex justify-between p-2 rounded-lg bg-slate-900/90"><span>4. Pike Push-Ups / Bench Dips</span><span class="text-emerald-400 font-semibold">3 × 10</span></div>
+              <div class="flex justify-between p-2 rounded-lg bg-slate-900/90"><span>5. Plank Hold (Core)</span><span class="text-emerald-400 font-semibold">3 × 35s</span></div>
+            </div>
+            <button onclick="logFullGroundRoutine()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs uppercase tracking-wider transition shadow-lg">
+              ⚡ Complete Full Ground Session (+200 XP)
+            </button>
+          </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-4">
+          <div class="grid grid-cols-3 gap-3">
+            <div class="glass-card rounded-2xl p-4">
+              <p class="text-xs text-slate-400">Weekly Sessions</p>
+              <p id="weekly-workout-count" class="font-athletic text-3xl font-extrabold text-white mt-1">0 / 3</p>
+              <p class="text-[11px] text-emerald-400 mt-1">Mon / Wed / Fri Target</p>
+            </div>
+            <div class="glass-card rounded-2xl p-4">
+              <p class="text-xs text-slate-400">Today's Working Sets</p>
+              <p id="today-total-sets" class="font-athletic text-3xl font-extrabold text-white mt-1">0 sets</p>
+              <p class="text-[11px] text-slate-400 mt-1">Muscle growth signal</p>
+            </div>
+            <div class="glass-card rounded-2xl p-4">
+              <p class="text-xs text-slate-400">Energy Burned</p>
+              <p id="today-burn-kcal" class="font-athletic text-3xl font-extrabold text-amber-400 mt-1">0 kcal</p>
+              <p class="text-[11px] text-slate-400 mt-1">Net surplus protected</p>
+            </div>
+          </div>
+
+          <div class="glass-card rounded-2xl p-5">
+            <h2 class="text-base font-bold text-white mb-4 flex items-center gap-2">
+              <i data-lucide="activity" class="w-4 h-4 text-emerald-400"></i> Iron Work Completed on <span id="workout-date-label" class="text-emerald-400">Today</span>
+            </h2>
+            <div id="daily-workout-list" class="space-y-3"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: WEEKLY WEIGHT CHECKS & GRAPHS ==================== -->
+    <section id="tab-analytics" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="glass-card rounded-2xl p-5 border border-emerald-500/30">
+          <h2 class="text-base font-bold text-white mb-1 flex items-center gap-2">
+            <i data-lucide="scale" class="w-4 h-4 text-emerald-400"></i> Weekly Morning Weigh-In
+          </h2>
+          <p class="text-xs text-slate-400 mb-4">Weigh once a week (empty stomach, after bathroom). Every +0.1 kg triggers a celebration!</p>
+
+          <form id="weight-form" class="space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Weigh-In Date</label>
+                <input type="date" id="weight-date" required class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs sm:text-sm focus:outline-none focus:border-emerald-500" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Scale Weight (kg)</label>
+                <input type="number" step="0.1" id="weight-val" required min="30" max="150" placeholder="48.5" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm font-bold focus:outline-none focus:border-emerald-500" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Body & Strength Check Note</label>
+              <input type="text" id="weight-note" placeholder="e.g. Shirts feeling tighter on shoulders, digestion great" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-sm focus:outline-none focus:border-emerald-500" />
+            </div>
+            <button type="submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-sm transition shadow-lg shadow-emerald-600/20">
+              Record Scale Victory (+300 XP)
+            </button>
+          </form>
+
+          <div class="mt-5 pt-4 border-t border-slate-800">
+            <div class="flex justify-between text-xs font-semibold mb-1.5">
+              <span class="text-slate-400">Start: 48.0 kg</span>
+              <span class="text-amber-400" id="milestone-label">Peak Check: 52.0 kg</span>
+              <span class="text-emerald-400" id="goal-label">Goal: 59.0 kg</span>
+            </div>
+            <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden">
+              <div id="overall-weight-bar" class="bg-gradient-to-r from-amber-500 via-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500" style="width: 5%"></div>
+            </div>
+            <div class="flex justify-between text-xs text-slate-400 mt-2">
+              <span id="bmi-badge">Current BMI: 18.99</span>
+              <span id="eta-badge">Target Pace: +0.35 kg/wk</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-2 glass-card rounded-2xl p-5">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div>
+              <h2 class="text-base font-bold text-white">Real Body Mass Trajectory (kg)</h2>
+              <p class="text-xs text-slate-400">Visual proof of your climb from 48kg → 52kg (Sept Peak) → 59kg Ultimate Goal</p>
+            </div>
+            <span id="total-gained-badge" class="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 text-xs font-bold border border-emerald-500/30">+0.0 kg Gained</span>
+          </div>
+          <div class="h-64 w-full">
+            <canvas id="weightChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass-card rounded-2xl p-5">
+          <div class="mb-4">
+            <h2 class="text-base font-bold text-white">14-Day Calorie Surplus Streak</h2>
+            <p class="text-xs text-slate-400">Green bars above the dashed target line mean guaranteed tissue growth</p>
+          </div>
+          <div class="h-60 w-full">
+            <canvas id="calorieChart"></canvas>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-2xl p-5">
+          <div class="mb-4">
+            <h2 class="text-base font-bold text-white">14-Day Muscle Protein Consistency</h2>
+            <p class="text-xs text-slate-400">Daily protein (g) turning your ground workouts into thick muscle</p>
+          </div>
+          <div class="h-60 w-full">
+            <canvas id="proteinChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card rounded-2xl p-5">
+        <h3 class="text-base font-bold text-white mb-3">Weekly Scale Logbook</h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 text-xs uppercase text-slate-400">
+                <th class="py-2.5 px-3">Date</th>
+                <th class="py-2.5 px-3">Weight</th>
+                <th class="py-2.5 px-3">Change</th>
+                <th class="py-2.5 px-3">BMI</th>
+                <th class="py-2.5 px-3">Physique Notes</th>
+                <th class="py-2.5 px-3 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="weight-history-tbody" class="divide-y divide-slate-800/60 text-sm"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: REWARDS, TROPHIES & REAL-WORLD VAULT ==================== -->
+    <section id="tab-rewards" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left: Real-World Self-Reward Vault -->
+        <div class="lg:col-span-1 space-y-4">
+          <div class="glass-card rounded-2xl p-5 border border-amber-500/30">
+            <h2 class="text-base font-bold text-white mb-1 flex items-center gap-2">
+              <i data-lucide="gift" class="w-5 h-5 text-amber-400"></i> Real-World Reward Vault
+            </h2>
+            <p class="text-xs text-slate-400 mb-4">
+              Real effort deserves real rewards. Unlock guilt-free student rewards when you hit each physical milestone!
+            </p>
+
+            <div id="real-rewards-list" class="space-y-3">
+              <!-- Populated by JS -->
+            </div>
+
+            <!-- Add Custom Personal Reward -->
+            <form id="custom-reward-form" class="mt-4 pt-4 border-t border-slate-800 space-y-2.5">
+              <p class="text-xs font-bold text-slate-300">+ Add Your Own Milestone Reward</p>
+              <input type="text" id="reward-title-input" required placeholder="e.g. Buy New Fitted Black T-Shirt" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-amber-500" />
+              <div class="flex gap-2">
+                <input type="number" step="0.1" id="reward-kg-input" required min="48" max="80" placeholder="Target kg (e.g. 51.0)" class="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white text-xs focus:outline-none focus:border-amber-500" />
+                <button type="submit" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shrink-0">Add</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Right 2 Cols: Unlockable Physique & Discipline Trophies -->
+        <div class="lg:col-span-2 glass-card rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-base font-bold text-white flex items-center gap-2">
+                <i data-lucide="medal" class="w-5 h-5 text-amber-400"></i> Iron Rebound Trophy Wall
+              </h2>
+              <p class="text-xs text-slate-400">Every badge represents real tissue gained, workouts conquered, and self-control mastered</p>
+            </div>
+            <span id="trophy-count-badge" class="px-3 py-1 rounded-full bg-amber-500/15 text-amber-300 text-xs font-extrabold border border-amber-500/30">0 / 8 Unlocked</span>
+          </div>
+
+          <div id="trophies-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 5: JOURNEY TIMELINE & PERSISTENT BACKUP ==================== -->
+    <section id="tab-timeline" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="space-y-4">
+          <div class="glass-card rounded-2xl p-5 border border-sky-500/30">
+            <h2 class="text-base font-bold text-white mb-1 flex items-center gap-2">
+              <i data-lucide="hard-drive" class="w-4 h-4 text-sky-400"></i> Permanent Data Sync
+            </h2>
+            <p class="text-xs text-slate-400 mb-4">
+              100% auto-saved in your browser's local database on every entry. Export a backup file anytime to keep it safe forever.
+            </p>
+
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-2 text-xs mb-4">
+              <div class="flex justify-between">
+                <span class="text-slate-400">Storage Status:</span>
+                <span class="text-emerald-400 font-bold flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span> Active & Auto-Synced</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">Active Days Logged:</span>
+                <span id="stat-days-logged" class="text-white font-semibold">0 days</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">Total Feeds Recorded:</span>
+                <span id="stat-meals-logged" class="text-white font-semibold">0 items</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-400">Exercises Conquered:</span>
+                <span id="stat-workouts-logged" class="text-white font-semibold">0 sets</span>
+              </div>
+            </div>
+
+            <div class="space-y-2.5">
+              <button onclick="exportBackupJSON()" class="w-full py-2.5 px-4 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition">
+                <i data-lucide="download" class="w-4 h-4"></i> Export Full Backup (.JSON)
+              </button>
+
+              <label class="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer transition">
+                <i data-lucide="upload" class="w-4 h-4 text-emerald-400"></i> Restore From Backup (.JSON)
+                <input type="file" id="import-json-input" accept=".json" class="hidden" onchange="importBackupJSON(event)" />
+              </label>
+
+              <button onclick="copySummaryToClipboard()" class="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-semibold text-xs flex items-center justify-center gap-2 transition">
+                <i data-lucide="copy" class="w-4 h-4 text-amber-400"></i> Copy Progress Report
+              </button>
+            </div>
+          </div>
+
+          <!-- Transformation Phases -->
+          <div class="glass-card rounded-2xl p-5">
+            <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+              <i data-lucide="flag" class="w-4 h-4 text-amber-400"></i> Physique Transformation Phases
+            </h3>
+            <div class="space-y-3 relative before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-800">
+              <div class="pl-7 relative">
+                <span class="w-3 h-3 rounded-full bg-emerald-500 absolute left-1 top-1 ring-4 ring-emerald-500/20"></span>
+                <p class="text-xs font-bold text-emerald-400">Phase 1: Gut Reset & Fuel Base (48.0 kg)</p>
+                <p class="text-xs text-slate-400">6 gentle feeds/day, kettle oats, eggs & sattu sharbat.</p>
+              </div>
+              <div class="pl-7 relative">
+                <span id="ms-52-dot" class="w-3 h-3 rounded-full bg-amber-500 absolute left-1 top-1"></span>
+                <p class="text-xs font-bold text-white">Phase 2: Sept Peak Reclaimed (52.0 kg)</p>
+                <p class="text-xs text-slate-400">Face & forearms visibly fuller; +4.0 kg pure comeback.</p>
+              </div>
+              <div class="pl-7 relative">
+                <span id="ms-55-dot" class="w-3 h-3 rounded-full bg-slate-600 absolute left-1 top-1"></span>
+                <p class="text-xs font-bold text-white">Phase 3: V-Taper Athletic Frame (55.0 kg)</p>
+                <p class="text-xs text-slate-400">T-shirts fit tight across chest, shoulders & upper back.</p>
+              </div>
+              <div class="pl-7 relative">
+                <span id="ms-59-dot" class="w-3 h-3 rounded-full bg-slate-600 absolute left-1 top-1"></span>
+                <p class="text-xs font-bold text-white">Phase 4: Iron Physique Complete (58–60 kg)</p>
+                <p class="text-xs text-slate-400">BMI ~23.3 — strong, confident, high energy & unbreakable habits.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-2 glass-card rounded-2xl p-5">
+          <div class="mb-4">
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              <i data-lucide="history" class="w-4 h-4 text-emerald-400"></i> Complete Transformation Timeline
+            </h2>
+            <p class="text-xs text-slate-400">Every surplus hit, ground workout, and scale jump recorded chronologically</p>
+          </div>
+          <div id="journey-timeline-feed" class="space-y-4 max-h-[650px] overflow-y-auto pr-1"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // =========================================================================
+    // 1. STATE & PERSISTENCE LAYER (Preserves existing storage key!)
+    // =========================================================================
+    const STORAGE_KEY = 'massgain_pg_kolhapur_v1';
+
+    const DEFAULT_PRESETS = [
+      { id: 'p1', name: 'Feed 1: Warm Amul Milk (200ml) + 1 Banana + 6 Almonds', calories: 310, protein: 10, carbs: 42, fats: 11, tag: '7:15 AM' },
+      { id: 'p2', name: 'Feed 2: PG Tiffin Breakfast + 2 Kettle Boiled Eggs', calories: 410, protein: 18, carbs: 46, fats: 16, tag: '8:30 AM' },
+      { id: 'p3', name: 'Feed 3: Tiffin Lunch (2 Roti+Rice) + Sattu Black Salt Drink', calories: 540, protein: 20, carbs: 82, fats: 12, tag: '1:30 PM' },
+      { id: 'p4', name: 'Feed 4: Kettle Choco-Oats-PB-Banana Bowl (No Blender)', calories: 580, protein: 23, carbs: 68, fats: 22, tag: '4:30 PM' },
+      { id: 'p5', name: 'Feed 5: Post-Workout 2 Boiled Eggs + Chana/Jaggery', calories: 290, protein: 16, carbs: 24, fats: 13, tag: '6:30 PM' },
+      { id: 'p6', name: 'Feed 6: PG Tiffin Dinner (2 Roti + Rice + Sabzi)', calories: 350, protein: 10, carbs: 56, fats: 9, tag: '8:30 PM' },
+      { id: 'p7', name: '2 Kettle Boiled Eggs (Salt & Black Pepper)', calories: 155, protein: 12.5, carbs: 1, fats: 11, tag: 'Pure Protein' },
+      { id: 'p8', name: 'Choco-Sattu Milk Drink (200ml Milk+3tbsp Sattu+Cocoa)', calories: 330, protein: 15, carbs: 44, fats: 9, tag: 'Zero-Noise Shake' },
+      { id: 'p9', name: '1 Ripe Banana + 1.5 tbsp Creamy Peanut Butter', calories: 250, protein: 7, carbs: 30, fats: 12, tag: 'Calorie Boost' },
+      { id: 'p10', name: 'Seeds & Curd Boost (1 Cup Dahi + Chia & Pumpkin Seeds)', calories: 185, protein: 8, carbs: 11, fats: 12, tag: 'Gut & Fats' }
+    ];
+
+    const DAILY_HABITS = [
+      { id: 'h1', label: 'Split into 5–6 small feeds (No oversized mess plates)', sub: 'Prevents early fullness & fast gut transit' },
+      { id: 'h2', label: 'Zero junk food (Skipped oily samosa / Kurkure)', sub: 'Protects recovering gut & platelet strength' },
+      { id: 'h3', label: 'Plain water swish after feeds + Night fluoride (No rinse)', sub: 'Protects cavities while bulking' },
+      { id: 'h4', label: 'Phone kept off bed at night (7.5–8 hrs deep sleep)', sub: 'Maximizes natural testosterone, HGH & focus' }
+    ];
+
+    const WAR_CRY_QUOTES = [
+      "Illness took 4 kg from you, not your willpower. Every spoon of sattu, every boiled egg, and every slow push-up builds a stronger, broader body than September.",
+      "Skinny is temporary; discipline is permanent. You don't need a fancy gym or blender—just 2,450 kcal, 95g protein, and relentless consistency.",
+      "Channel every ounce of restless energy into push-ups, pull-ups, and study focus. When you go home at 58 kg, your physique will speak before you say a word.",
+      "Muscles don't grow while you scroll in bed—they grow when you hit your 6 feeds, train hard on the ground 3x/week, and sleep 8 deep hours.",
+      "48 kg is just your starting line. Reclaim 52 kg first, conquer 55 kg next, and lock in your 59 kg athletic frame."
+    ];
+
+    const DEFAULT_REAL_REWARDS = [
+      { id: 'rw1', targetKg: 49.5, title: 'Double Masala Boiled Egg + Fresh Amboli Feast', desc: 'Celebrate your first +1.5 kg scale jump!' },
+      { id: 'rw2', targetKg: 52.0, title: 'Sept Peak Reclaimed: New Fitted Athletic T-Shirt', desc: 'Show off broader shoulders & chest!' },
+      { id: 'rw3', targetKg: 55.0, title: '55kg Milestone: Gym/Ground Wrist Wraps or New Haircut', desc: 'Halfway to ultimate physique transformation!' },
+      { id: 'rw4', targetKg: 58.5, title: '60kg Titan Victory: Full New Fitted Outfit & Photoshoot', desc: 'You transformed your body from scratch!' }
+    ];
+
+    let quoteIdx = 0;
+
+    function getTodayISO() {
+      const now = new Date();
+      const offset = now.getTimezoneOffset() * 60000;
+      return new Date(now.getTime() - offset).toISOString().split('T')[0];
+    }
+
+    function createInitialState() {
+      const today = getTodayISO();
+      return {
+        targets: {
+          calories: 2450,
+          protein: 95,
+          carbs: 310,
+          fats: 75,
+          startWeight: 48.0,
+          milestoneWeight: 52.0,
+          goalWeight: 59.0,
+          heightCm: 159
+        },
+        remindersEnabled: true,
+        bonusXP: 0,
+        unlockedMilestones: [],
+        customRewards: [...DEFAULT_REAL_REWARDS],
+        presets: [...DEFAULT_PRESETS],
+        dailyLogs: {
+          [today]: { foods: [], workouts: [], habits: {} }
+        },
+        weightLogs: [
+          { id: 'w_init', date: '2026-11-13', weight: 48.0, note: 'Restart baseline after illness (goal: 52kg Sept peak -> 59kg)' }
+        ]
+      };
+    }
+
+    let appState = loadState();
+    let selectedDate = getTodayISO();
+    let heroPhysiqueChartInstance = null;
+    let weightChartInstance = null;
+    let calorieChartInstance = null;
+    let proteinChartInstance = null;
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          const initial = createInitialState();
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
+          return initial;
+        }
+        const parsed = JSON.parse(raw);
+        if (!parsed.targets) parsed.targets = createInitialState().targets;
+        if (!parsed.presets || !parsed.presets.length) parsed.presets = [...DEFAULT_PRESETS];
+        if (!parsed.dailyLogs) parsed.dailyLogs = {};
+        if (!parsed.weightLogs) parsed.weightLogs = createInitialState().weightLogs;
+        if (typeof parsed.bonusXP !== 'number') parsed.bonusXP = 0;
+        if (!Array.isArray(parsed.unlockedMilestones)) parsed.unlockedMilestones = [];
+        if (!Array.isArray(parsed.customRewards) || !parsed.customRewards.length) parsed.customRewards = [...DEFAULT_REAL_REWARDS];
+        return parsed;
+      } catch (e) {
+        return createInitialState();
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (e) {
+        showToast('Storage warning: Could not save locally.', 'error');
+      }
+    }
+
+    window.addEventListener('storage', (e) => {
+      if (e.key === STORAGE_KEY) {
+        appState = loadState();
+        renderAll();
+      }
+    });
+
+    function ensureDayLog(dateStr) {
+      if (!appState.dailyLogs[dateStr]) {
+        appState.dailyLogs[dateStr] = { foods: [], workouts: [], habits: {} };
+      }
+      return appState.dailyLogs[dateStr];
+    }
+
+    // =========================================================================
+    // 2. CELEBRATION ENGINE (Confetti, Victory Chimes & Physique Avatar)
+    // =========================================================================
+    function triggerVictoryConfetti() {
+      if (typeof confetti === 'function') {
+        confetti({
+          particleCount: 75,
+          spread: 70,
+          origin: { y: 0.65 },
+          colors: ['#10b981', '#f59e0b', '#38bdf8', '#ffffff']
+        });
+      }
+    }
+
+    function playVictoryFanfare() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5 E5 G5 C6
+        notes.forEach((freq, i) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.09);
+          gain.gain.setValueAtTime(0.09, ctx.currentTime + i * 0.09);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.09 + 0.35);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + i * 0.09);
+          osc.stop(ctx.currentTime + i * 0.09 + 0.35);
+        });
+      } catch (e) {}
+    }
+
+    function openCelebrationModal(badge, title, desc, rewardText) {
+      document.getElementById('cel-badge').textContent = badge;
+      document.getElementById('cel-title').textContent = title;
+      document.getElementById('cel-desc').textContent = desc;
+      document.getElementById('cel-reward-box').textContent = rewardText;
+      const modal = document.getElementById('celebration-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      triggerVictoryConfetti();
+      playVictoryFanfare();
+    }
+
+    function closeCelebrationModal() {
+      const modal = document.getElementById('celebration-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function rotateMotivationalQuote() {
+      quoteIdx = (quoteIdx + 1) % WAR_CRY_QUOTES.length;
+      document.getElementById('daily-war-cry').textContent = `"${WAR_CRY_QUOTES[quoteIdx]}"`;
+    }
+
+    function logEmergencyDisciplinePushups() {
+      addWorkoutEntry('Discipline Focus Push-Ups (Slow 3s Tempo)', 1, '15 reps', 12, 'Redirected energy into real chest & arm mass');
+      appState.bonusXP += 10; // Total +50 XP with workout entry
+      saveState();
+      renderHeroAndGamification();
+      triggerVictoryConfetti();
+      showToast('🔥 +50 Discipline XP! Energy channeled into real muscle!');
+    }
+
+    // Calculate Total XP, Level, Streak & Evolving Body Avatar
+    function calculateGamificationStats() {
+      let totalMeals = 0;
+      let totalWorkoutSets = 0;
+      let totalHabitsChecked = 0;
+      let surplusDays = 0;
+
+      Object.keys(appState.dailyLogs).forEach(d => {
+        const log = appState.dailyLogs[d];
+        totalMeals += log.foods.length;
+        totalWorkoutSets += log.workouts.reduce((s, w) => s + (Number(w.sets) || 1), 0);
+        totalHabitsChecked += Object.values(log.habits || {}).filter(Boolean).length;
+        const cal = log.foods.reduce((s, f) => s + (Number(f.calories) || 0), 0);
+        if (cal >= appState.targets.calories) surplusDays++;
+      });
+
+      const weights = getSortedWeights();
+      const latestWeight = weights.length ? weights[weights.length - 1].weight : appState.targets.startWeight;
+      const gainedKg = Math.max(0, latestWeight - appState.targets.startWeight);
+
+      const xp = (totalMeals * 20)
+        + (totalWorkoutSets * 12)
+        + (totalHabitsChecked * 25)
+        + (surplusDays * 100)
+        + Math.round(gainedKg * 400)
+        + (appState.bonusXP || 0);
+
+      const level = Math.floor(xp / 500) + 1;
+      const xpInLevel = xp % 500;
+
+      const ranks = [
+        'Comeback Fighter',
+        'Iron Apprentice',
+        'Surplus Builder',
+        'Mass Architect',
+        'Sept Peak Reclaimer',
+        'V-Taper Athlete',
+        '60kg Iron Titan'
+      ];
+      const rankName = ranks[Math.min(ranks.length - 1, level - 1)];
+
+      return {
+        xp,
+        level,
+        xpInLevel,
+        rankName,
+        totalMeals,
+        totalWorkoutSets,
+        surplusDays,
+        latestWeight,
+        gainedKg
+      };
+    }
+
+    function renderHeroAndGamification() {
+      const stats = calculateGamificationStats();
+      const start = appState.targets.startWeight;
+      const goal = appState.targets.goalWeight;
+      const milestone = appState.targets.milestoneWeight;
+
+      // Update Header Rank Pill
+      document.getElementById('rank-badge-pill').textContent = `LVL ${stats.level} • ${stats.rankName.toUpperCase()}`;
+
+      // Update Hero Weight & Progress
+      document.getElementById('hero-weight-num').textContent = stats.latestWeight.toFixed(1);
+      const diff = (stats.latestWeight - start).toFixed(1);
+      document.getElementById('hero-gained-pill').textContent = `${diff >= 0 ? '+' : ''}${diff} kg`;
+
+      if (stats.latestWeight < milestone) {
+        document.getElementById('hero-next-milestone-txt').textContent = `Next: ${milestone.toFixed(1)} kg Sept Peak`;
+      } else {
+        document.getElementById('hero-next-milestone-txt').textContent = `Peak Beaten! Push to ${goal.toFixed(1)} kg`;
+      }
+
+      // Render Marked Line Graph for Current Physique Frame (rises/dips with weight entries)
+      const weights = getSortedWeights();
+      const chartLabels = weights.map(w => w.date.slice(5)); // MM-DD
+      const chartValues = weights.map(w => w.weight);
+      const pointColors = chartValues.map((val, idx) => {
+        if (idx === 0) return '#38bdf8';
+        return val >= chartValues[idx - 1] ? '#10b981' : '#f43f5e';
+      });
+      const minVal = Math.min(...chartValues, start) - 0.8;
+      const maxVal = Math.max(...chartValues, stats.latestWeight + 1.2);
+
+      const heroCanvas = document.getElementById('heroPhysiqueChart');
+      if (heroCanvas) {
+        const ctxHero = heroCanvas.getContext('2d');
+        if (heroPhysiqueChartInstance) heroPhysiqueChartInstance.destroy();
+        heroPhysiqueChartInstance = new Chart(ctxHero, {
+          type: 'line',
+          data: {
+            labels: chartLabels,
+            datasets: [
+              {
+                label: 'Weight (kg)',
+                data: chartValues,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.16)',
+                borderWidth: 2.5,
+                pointBackgroundColor: pointColors,
+                pointBorderColor: '#0f172a',
+                pointBorderWidth: 1.5,
+                pointRadius: 4.5,
+                pointHoverRadius: 6.5,
+                fill: true,
+                tension: 0.25
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: '#0f172a',
+                titleColor: '#94a3b8',
+                bodyColor: '#f8fafc',
+                borderColor: '#334155',
+                borderWidth: 1,
+                displayColors: false,
+                callbacks: {
+                  label: (ctx) => `${ctx.parsed.y.toFixed(1)} kg`
+                }
+              }
+            },
+            scales: {
+              x: {
+                ticks: { color: '#64748b', font: { size: 9, weight: '600' }, maxRotation: 0 },
+                grid: { display: false }
+              },
+              y: {
+                min: Number(minVal.toFixed(1)),
+                max: Number(maxVal.toFixed(1)),
+                ticks: {
+                  color: '#64748b',
+                  font: { size: 9 },
+                  maxTicksLimit: 3,
+                  callback: (v) => `${v}kg`
+                },
+                grid: { color: 'rgba(51, 65, 85, 0.25)' }
+              }
+            }
+          }
+        });
+      }
+
+      // Evolve SVG Silhouette Widths based on real weight progress (0.0 to 1.0)
+      const growthRatio = Math.max(0, Math.min(1, (stats.latestWeight - 48.0) / 11.0));
+      const shoulderExpand = Math.round(growthRatio * 9); // widens shoulders up to +9px each side
+      const waistExpand = Math.round(growthRatio * 4);
+      const armWidth = (9 + growthRatio * 4.5).toFixed(1);
+      const legWidth = (12 + growthRatio * 4.5).toFixed(1);
+
+      const torsoEl = document.getElementById('svg-torso');
+      if (torsoEl) {
+        torsoEl.setAttribute('d', `M ${38 - shoulderExpand} 40 L ${82 + shoulderExpand} 40 L ${74 + waistExpand} 84 L ${46 - waistExpand} 84 Z`);
+        document.getElementById('svg-arm-l').setAttribute('x', (27 - shoulderExpand - (growthRatio * 2)).toFixed(1));
+        document.getElementById('svg-arm-l').setAttribute('width', armWidth);
+        document.getElementById('svg-arm-r').setAttribute('x', (84 + shoulderExpand).toFixed(1));
+        document.getElementById('svg-arm-r').setAttribute('width', armWidth);
+
+        document.getElementById('svg-leg-l').setAttribute('x', (46 - waistExpand).toFixed(1));
+        document.getElementById('svg-leg-l').setAttribute('width', legWidth);
+        document.getElementById('svg-leg-r').setAttribute('x', (62 + waistExpand - (growthRatio * 2)).toFixed(1));
+        document.getElementById('svg-leg-r').setAttribute('width', legWidth);
+      }
+
+      // Stage Description
+      const stageTag = document.getElementById('svg-stage-tag');
+      const descEl = document.getElementById('hero-physique-desc');
+      if (stats.latestWeight < 50) {
+        stageTag.textContent = 'Stage 1: Lean Base';
+        descEl.textContent = 'Rebuilding glycogen & muscle fibers — shoulders & chest filling out';
+      } else if (stats.latestWeight < 52) {
+        stageTag.textContent = 'Stage 2: Filling Out';
+        descEl.textContent = 'Visibly fuller arms & face — closing in on your 52 kg Sept peak!';
+      } else if (stats.latestWeight < 55) {
+        stageTag.textContent = 'Stage 3: Peak Broken';
+        descEl.textContent = 'Past your old record! T-shirts fitting tighter across chest & back';
+      } else {
+        stageTag.textContent = 'Stage 4: Iron Frame';
+        descEl.textContent = 'Athletic V-taper physique — solid muscle mass & unbreakable discipline';
+      }
+
+      // XP & Level Bar
+      document.getElementById('xp-rank-title').textContent = `Rank ${stats.level}: ${stats.rankName}`;
+      document.getElementById('xp-counter-label').textContent = `${stats.xpInLevel} / 500 XP (Total: ${stats.xp})`;
+      document.getElementById('xp-progress-bar').style.width = `${Math.max(6, (stats.xpInLevel / 500) * 100)}%`;
+      document.getElementById('streak-days-label').textContent = `🔥 ${stats.surplusDays} Surplus Days Hit`;
+
+      // Today's Growth Power (Anabolic Readiness %)
+      const totals = getDayNutritionTotals(selectedDate);
+      const dayLog = ensureDayLog(selectedDate);
+      const calScore = Math.min(60, (totals.calories / appState.targets.calories) * 60);
+      const protScore = Math.min(30, (totals.protein / appState.targets.protein) * 30);
+      const habitScore = Math.min(10, Object.values(dayLog.habits || {}).filter(Boolean).length * 2.5);
+      const totalPower = Math.round(calScore + protScore + habitScore);
+
+      document.getElementById('anabolic-score-val').textContent = `${totalPower}%`;
+      const statusMsg = document.getElementById('anabolic-status-msg');
+      if (totalPower >= 95) {
+        statusMsg.textContent = 'MAX ANABOLIC MODE! Your muscles are actively growing right now.';
+      } else if (totalPower >= 60) {
+        statusMsg.textContent = 'Strong momentum! Finish your remaining feeds to lock in today’s weight gain.';
+      } else {
+        statusMsg.textContent = 'Feed your muscles! Hit 2,450 kcal + 95g protein to trigger real tissue growth.';
+      }
+    }
+
+    // =========================================================================
+    // 3. UI HELPERS (Toast & Confirm Modal)
+    // =========================================================================
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      const colors = type === 'error'
+        ? 'bg-rose-950/95 border-rose-500/50 text-rose-100'
+        : type === 'warning'
+        ? 'bg-amber-950/95 border-amber-500/50 text-amber-100'
+        : 'bg-slate-900/95 border-emerald-500/50 text-emerald-100';
+
+      el.className = `pointer-events-auto px-4 py-3 rounded-xl border shadow-xl text-xs font-semibold flex items-center justify-between gap-2 transition-all duration-300 ${colors}`;
+      el.innerHTML = `<span>${message}</span>`;
+      container.appendChild(el);
+
+      setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(-6px)';
+        setTimeout(() => el.remove(), 300);
+      }, 3000);
+    }
+
+    function showConfirm(title, message, onConfirm) {
+      const modal = document.getElementById('confirm-modal');
+      document.getElementById('confirm-title').textContent = title;
+      document.getElementById('confirm-message').textContent = message;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      const cancelBtn = document.getElementById('confirm-cancel-btn');
+      const okBtn = document.getElementById('confirm-ok-btn');
+
+      const cleanup = () => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        cancelBtn.onclick = null;
+        okBtn.onclick = null;
+      };
+
+      cancelBtn.onclick = cleanup;
+      okBtn.onclick = () => {
+        cleanup();
+        onConfirm();
+      };
+    }
+
+    // =========================================================================
+    // 4. NAVIGATION & DATE CONTROLS
+    // =========================================================================
+    function switchTab(tabName) {
+      ['nutrition', 'workout', 'analytics', 'rewards', 'timeline'].forEach(t => {
+        const sec = document.getElementById(`tab-${t}`);
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (t === tabName) {
+          sec.classList.remove('hidden');
+          btn.className = 'tab-btn flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition bg-emerald-600 text-white shadow';
+        } else {
+          sec.classList.add('hidden');
+          btn.className = 'tab-btn flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-400 hover:text-white transition';
+        }
+      });
+
+      if (tabName === 'analytics') renderCharts();
+      if (tabName === 'rewards') renderRewardsSection();
+      if (tabName === 'timeline') renderTimeline();
+      lucide.createIcons();
+    }
+
+    function changeSelectedDate(deltaDays) {
+      const d = new Date(selectedDate + 'T00:00:00');
+      d.setDate(d.getDate() + deltaDays);
+      const offset = d.getTimezoneOffset() * 60000;
+      selectedDate = new Date(d.getTime() - offset).toISOString().split('T')[0];
+      document.getElementById('active-date-picker').value = selectedDate;
+      renderAll();
+    }
+
+    function formatFriendlyDate(dateStr) {
+      const today = getTodayISO();
+      if (dateStr === today) return 'Today';
+      const d = new Date(dateStr + 'T00:00:00');
+      return d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' });
+    }
+
+    // =========================================================================
+    // 5. SMART "EAT MORE" REMINDERS ENGINE
+    // =========================================================================
+    function updateSmartReminder() {
+      const totals = getDayNutritionTotals(selectedDate);
+      const remCal = Math.max(0, appState.targets.calories - totals.calories);
+      const remProt = Math.max(0, appState.targets.protein - totals.protein);
+      const hour = new Date().getHours();
+
+      let suggestedFeedIndex = 0;
+      let timeAdvice = '';
+
+      if (hour < 8) {
+        suggestedFeedIndex = 0;
+        timeAdvice = '7:15 AM Wake-Up Fuel: Warm 200ml Amul milk + 1 banana + 6 soaked almonds.';
+      } else if (hour < 11) {
+        suggestedFeedIndex = 1;
+        timeAdvice = '8:30 AM Breakfast Window: PG tiffin + 2 kettle boiled eggs.';
+      } else if (hour < 15) {
+        suggestedFeedIndex = 2;
+        timeAdvice = '1:30 PM Lunch Window: 2 chapati + rice + Sattu black salt drink (fixes weak dal!).';
+      } else if (hour < 18) {
+        suggestedFeedIndex = 3;
+        timeAdvice = '4:30 PM High-Calorie Boost: Warm kettle choco-oats-peanut butter bowl (580 kcal).';
+      } else if (hour < 20) {
+        suggestedFeedIndex = 4;
+        timeAdvice = '6:30 PM Post-Workout Recovery: 2 kettle boiled eggs + roasted chana/jaggery.';
+      } else {
+        suggestedFeedIndex = 5;
+        timeAdvice = '8:30 PM Dinner Window: 2 chapati + rice + sabzi (chew slowly, then fluoride brush!).';
+      }
+
+      const feedTagEl = document.getElementById('reminder-feed-tag');
+      const deficitEl = document.getElementById('reminder-deficit-badge');
+      const msgEl = document.getElementById('reminder-message');
+      const bannerEl = document.getElementById('smart-reminder-banner').firstElementChild;
+
+      if (remCal === 0 && remProt === 0) {
+        feedTagEl.textContent = 'SURPLUS CONQUERED! 🏆';
+        feedTagEl.className = 'text-xs font-bold uppercase tracking-wider text-emerald-400';
+        deficitEl.textContent = `+${Math.round(totals.calories - appState.targets.calories)} kcal surplus`;
+        msgEl.textContent = 'Phenomenal discipline! You hit your daily calorie & protein surplus on ' + formatFriendlyDate(selectedDate) + '.';
+        bannerEl.classList.remove('reminder-pulse', 'border-amber-500/40');
+        bannerEl.classList.add('border-emerald-500/50');
+      } else {
+        feedTagEl.textContent = remCal > 800 ? 'FEED YOUR MUSCLES' : 'FINISH STRONG';
+        feedTagEl.className = 'text-xs font-bold uppercase tracking-wider text-amber-400';
+        deficitEl.textContent = `${Math.round(remCal)} kcal & ${Math.round(remProt)}g protein left`;
+        msgEl.textContent = timeAdvice;
+        bannerEl.classList.add('reminder-pulse', 'border-amber-500/40');
+      }
+
+      bannerEl.dataset.suggestedPresetIdx = suggestedFeedIndex;
+      document.getElementById('sound-reminder-label').textContent = appState.remindersEnabled ? 'Reminders: ON' : 'Reminders: OFF';
+    }
+
+    function quickLogSuggestedFeed() {
+      const bannerEl = document.getElementById('smart-reminder-banner').firstElementChild;
+      const idx = parseInt(bannerEl.dataset.suggestedPresetIdx || '0', 10);
+      const preset = appState.presets[idx] || appState.presets[0];
+      if (preset) {
+        addFoodEntry(preset.name, preset.calories, preset.protein, preset.carbs, preset.fats);
+      }
+    }
+
+    function toggleHourlyChime() {
+      appState.remindersEnabled = !appState.remindersEnabled;
+      saveState();
+      updateSmartReminder();
+      if (appState.remindersEnabled) {
+        playGentleChime();
+        showToast('Eat-More Reminders enabled!');
+      } else {
+        showToast('Reminders muted.', 'warning');
+      }
+    }
+
+    function playGentleChime() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(659.25, ctx.currentTime + 0.18);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.45);
+      } catch (e) {}
+    }
+
+    // =========================================================================
+    // 6. NUTRITION & FOOD LOGGING LOGIC
+    // =========================================================================
+    function getDayNutritionTotals(dateStr) {
+      const log = ensureDayLog(dateStr);
+      return log.foods.reduce((acc, item) => {
+        acc.calories += Number(item.calories) || 0;
+        acc.protein += Number(item.protein) || 0;
+        acc.carbs += Number(item.carbs) || 0;
+        acc.fats += Number(item.fats) || 0;
+        return acc;
+      }, { calories: 0, protein: 0, carbs: 0, fats: 0 });
+    }
+
+    function addFoodEntry(name, calories, protein, carbs = 0, fats = 0) {
+      const prevTotals = getDayNutritionTotals(selectedDate);
+      const wasBelowTarget = prevTotals.calories < appState.targets.calories;
+
+      const log = ensureDayLog(selectedDate);
+      const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      log.foods.push({
+        id: 'f_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        name,
+        calories: Number(calories),
+        protein: Number(protein),
+        carbs: Number(carbs),
+        fats: Number(fats),
+        time: nowTime
+      });
+      saveState();
+      renderAll();
+
+      const newTotals = getDayNutritionTotals(selectedDate);
+      if (wasBelowTarget && newTotals.calories >= appState.targets.calories) {
+        triggerVictoryConfetti();
+        playVictoryFanfare();
+        showToast(`🏆 SURPLUS HIT! ${Math.round(newTotals.calories)} kcal (+100 Bonus XP)!`);
+      } else {
+        showToast(`+20 XP • Fuel added: "${name}" (+${calories} kcal)`);
+      }
+    }
+
+    function deleteFoodEntry(foodId) {
+      const log = ensureDayLog(selectedDate);
+      log.foods = log.foods.filter(f => f.id !== foodId);
+      saveState();
+      renderAll();
+      showToast('Meal entry removed.', 'warning');
+    }
+
+    function renderNutritionSection() {
+      const totals = getDayNutritionTotals(selectedDate);
+      const t = appState.targets;
+
+      document.getElementById('val-calories').textContent = Math.round(totals.calories);
+      document.getElementById('target-calories-disp').textContent = `/ ${t.calories} kcal`;
+      document.getElementById('bar-calories').style.width = `${Math.min(100, Math.round((totals.calories / t.calories) * 100))}%`;
+      const remCal = t.calories - totals.calories;
+      document.getElementById('rem-calories').textContent = remCal > 0
+        ? `${Math.round(remCal)} kcal left to hit surplus`
+        : `+${Math.abs(Math.round(remCal))} kcal above surplus!`;
+
+      document.getElementById('val-protein').textContent = `${totals.protein.toFixed(1).replace(/\.0$/, '')}g`;
+      document.getElementById('target-protein-disp').textContent = `/ ${t.protein}g`;
+      document.getElementById('bar-protein').style.width = `${Math.min(100, (totals.protein / t.protein) * 100)}%`;
+      const remProt = t.protein - totals.protein;
+      document.getElementById('rem-protein').textContent = remProt > 0
+        ? `${remProt.toFixed(1).replace(/\.0$/, '')}g protein remaining`
+        : `Muscle protein goal achieved!`;
+
+      document.getElementById('val-carbs').textContent = `${totals.carbs.toFixed(1).replace(/\.0$/, '')}g`;
+      document.getElementById('target-carbs-disp').textContent = `/ ${t.carbs}g`;
+      document.getElementById('bar-carbs').style.width = `${Math.min(100, (totals.carbs / t.carbs) * 100)}%`;
+      const remCarbs = t.carbs - totals.carbs;
+      document.getElementById('rem-carbs').textContent = remCarbs > 0 ? `${Math.round(remCarbs)}g carbs remaining` : `Glycogen fueled up!`;
+
+      document.getElementById('val-fats').textContent = `${totals.fats.toFixed(1).replace(/\.0$/, '')}g`;
+      document.getElementById('target-fats-disp').textContent = `/ ${t.fats}g`;
+      document.getElementById('bar-fats').style.width = `${Math.min(100, (totals.fats / t.fats) * 100)}%`;
+      const remFats = t.fats - totals.fats;
+      document.getElementById('rem-fats').textContent = remFats > 0 ? `${Math.round(remFats)}g healthy fats remaining` : `Hormone fats goal hit!`;
+
+      const presetGrid = document.getElementById('preset-foods-grid');
+      presetGrid.innerHTML = appState.presets.map(p => `
+        <button onclick="addFoodEntry('${p.name.replace(/'/g, "\\'")}', ${p.calories}, ${p.protein}, ${p.carbs}, ${p.fats})"
+          class="text-left p-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-800 hover:border-emerald-500/50 transition group flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5 mb-0.5">
+              <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400">${p.tag || 'PG Staple'}</span>
+              <span class="text-xs font-bold text-white truncate">${p.name}</span>
+            </div>
+            <p class="text-[11px] text-slate-400">
+              <span class="text-emerald-400 font-semibold">${p.calories} kcal</span> •
+              <span class="text-sky-400 font-semibold">${p.protein}g P</span> •
+              ${p.carbs}g C • ${p.fats}g F
+            </p>
+          </div>
+          <div class="w-7 h-7 rounded-lg bg-slate-800 group-hover:bg-emerald-600 text-slate-300 group-hover:text-white flex items-center justify-center shrink-0 transition">
+            <i data-lucide="plus" class="w-4 h-4"></i>
+          </div>
+        </button>
+      `).join('');
+
+      const log = ensureDayLog(selectedDate);
+      document.getElementById('food-log-date-label').textContent = formatFriendlyDate(selectedDate);
+      document.getElementById('meal-count-badge').textContent = `${log.foods.length} items`;
+
+      const foodListEl = document.getElementById('daily-food-list');
+      if (log.foods.length === 0) {
+        foodListEl.innerHTML = `
+          <div class="text-center py-8 px-4 rounded-xl border border-dashed border-slate-800">
+            <p class="text-sm text-slate-400 font-medium">No fuel logged yet for ${formatFriendlyDate(selectedDate)}.</p>
+            <p class="text-xs text-slate-500 mt-1">Tap any of your 6 PG feeds above to start building real mass!</p>
+          </div>
+        `;
+      } else {
+        foodListEl.innerHTML = log.foods.map(f => `
+          <div class="flex items-center justify-between gap-3 p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] font-mono text-slate-500">${f.time || ''}</span>
+                <p class="text-sm font-semibold text-white truncate">${f.name}</p>
+              </div>
+              <div class="flex flex-wrap gap-2 mt-1 text-xs">
+                <span class="text-emerald-400 font-semibold">${f.calories} kcal</span>
+                <span class="text-sky-400 font-semibold">${f.protein}g Protein</span>
+                <span class="text-slate-400">${f.carbs}g Carbs</span>
+                <span class="text-slate-400">${f.fats}g Fats</span>
+              </div>
+            </div>
+            <button onclick="deleteFoodEntry('${f.id}')" title="Delete Item" class="p-2 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition shrink-0">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        `).join('');
+      }
+
+      const habitsEl = document.getElementById('daily-habits-list');
+      habitsEl.innerHTML = DAILY_HABITS.map(h => {
+        const checked = !!log.habits[h.id];
+        return `
+          <label class="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-900/70 border ${checked ? 'border-emerald-500/40 bg-emerald-500/5' : 'border-slate-800'} cursor-pointer transition">
+            <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleHabit('${h.id}')" class="mt-0.5 rounded bg-slate-800 border-slate-600 text-emerald-500 focus:ring-emerald-500" />
+            <div>
+              <p class="text-xs font-semibold ${checked ? 'text-emerald-300 line-through' : 'text-slate-200'}">${h.label}</p>
+              <p class="text-[11px] text-slate-400">${h.sub}</p>
+            </div>
+          </label>
+        `;
+      }).join('');
+    }
+
+    function toggleHabit(habitId) {
+      const log = ensureDayLog(selectedDate);
+      log.habits[habitId] = !log.habits[habitId];
+      saveState();
+      renderAll();
+      if (log.habits[habitId]) {
+        showToast('+25 Discipline XP! Habit locked in.');
+      }
+    }
+
+    // =========================================================================
+    // 7. WORKOUT LOGGING LOGIC
+    // =========================================================================
+    function addWorkoutEntry(name, sets, reps, burnCal, notes = '') {
+      const log = ensureDayLog(selectedDate);
+      log.workouts.push({
+        id: 'ex_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        name,
+        sets: Number(sets),
+        reps,
+        burnCal: Number(burnCal),
+        notes
+      });
+      saveState();
+      renderAll();
+      showToast(`💪 +40 XP • Logged: ${name}`);
+    }
+
+    function logFullGroundRoutine() {
+      const routine = [
+        { name: 'Slow Push-Ups (3s negative)', sets: 4, reps: '10 reps', burnCal: 45, notes: 'Controlled chest & triceps tension' },
+        { name: 'Pull-Ups / Inverted Bar Rows', sets: 4, reps: '8 reps', burnCal: 50, notes: 'Full back & bicep pull' },
+        { name: 'Bulgarian Split Squats', sets: 4, reps: '12 reps/leg', burnCal: 65, notes: 'Heavy leg & glute growth' },
+        { name: 'Pike Push-Ups / Bench Dips', sets: 3, reps: '10 reps', burnCal: 35, notes: 'Broad shoulder caps' },
+        { name: 'Plank Hold', sets: 3, reps: '35 sec', burnCal: 20, notes: 'Solid core stability' }
+      ];
+      const log = ensureDayLog(selectedDate);
+      routine.forEach(r => {
+        log.workouts.push({
+          id: 'ex_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+          name: r.name, sets: r.sets, reps: r.reps, burnCal: r.burnCal, notes: r.notes
+        });
+      });
+      saveState();
+      renderAll();
+      triggerVictoryConfetti();
+      playVictoryFanfare();
+      showToast('🔥 BEAST SESSION LOGGED! +200 Mass XP earned!');
+    }
+
+    function deleteWorkoutEntry(exId) {
+      const log = ensureDayLog(selectedDate);
+      log.workouts = log.workouts.filter(w => w.id !== exId);
+      saveState();
+      renderAll();
+      showToast('Exercise removed.', 'warning');
+    }
+
+    function renderWorkoutSection() {
+      const log = ensureDayLog(selectedDate);
+      document.getElementById('workout-date-label').textContent = formatFriendlyDate(selectedDate);
+
+      let weekSessions = 0;
+      const base = new Date(selectedDate + 'T00:00:00');
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(base);
+        d.setDate(d.getDate() - i);
+        const iso = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+        if (appState.dailyLogs[iso] && appState.dailyLogs[iso].workouts.length > 0) {
+          weekSessions++;
+        }
+      }
+
+      const totalSets = log.workouts.reduce((sum, w) => sum + (Number(w.sets) || 0), 0);
+      const totalBurn = log.workouts.reduce((sum, w) => sum + (Number(w.burnCal) || 0), 0);
+
+      document.getElementById('weekly-workout-count').textContent = `${weekSessions} / 3`;
+      document.getElementById('today-total-sets').textContent = `${totalSets} sets`;
+      document.getElementById('today-burn-kcal').textContent = `${totalBurn} kcal`;
+
+      const listEl = document.getElementById('daily-workout-list');
+      if (log.workouts.length === 0) {
+        listEl.innerHTML = `
+          <div class="text-center py-8 px-4 rounded-xl border border-dashed border-slate-800">
+            <p class="text-sm text-slate-400 font-medium">Recovery & Growth Day on ${formatFriendlyDate(selectedDate)}.</p>
+            <p class="text-xs text-slate-500 mt-1">Muscles grow while you rest and eat! Hit your 2,450 kcal & 95g protein today.</p>
+          </div>
+        `;
+      } else {
+        listEl.innerHTML = log.workouts.map(w => `
+          <div class="flex items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+            <div>
+              <p class="text-sm font-bold text-white">${w.name}</p>
+              <div class="flex flex-wrap items-center gap-2 mt-1 text-xs">
+                <span class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-bold">${w.sets} Sets × ${w.reps}</span>
+                <span class="text-amber-400">~${w.burnCal} kcal</span>
+                ${w.notes ? `<span class="text-slate-400">• ${w.notes}</span>` : ''}
+              </div>
+            </div>
+            <button onclick="deleteWorkoutEntry('${w.id}')" class="p-2 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition">
+              <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+          </div>
+        `).join('');
+      }
+    }
+
+    // =========================================================================
+    // 8. WEEKLY WEIGHT CHECKS, REWARDS & TROPHIES
+    // =========================================================================
+    function getSortedWeights() {
+      return [...appState.weightLogs].sort((a, b) => a.date.localeCompare(b.date));
+    }
+
+    function renderWeightStats() {
+      const weights = getSortedWeights();
+      const latest = weights.length ? weights[weights.length - 1].weight : appState.targets.startWeight;
+      const start = appState.targets.startWeight;
+      const goal = appState.targets.goalWeight;
+      const milestone = appState.targets.milestoneWeight;
+
+      const pct = Math.max(2, Math.min(100, ((latest - start) / (goal - start)) * 100));
+      document.getElementById('overall-weight-bar').style.width = `${pct}%`;
+      document.getElementById('milestone-label').textContent = `Peak Check: ${milestone.toFixed(1)} kg`;
+      document.getElementById('goal-label').textContent = `Goal: ${goal.toFixed(1)} kg`;
+
+      const hMeters = (appState.targets.heightCm || 159) / 100;
+      const bmi = (latest / (hMeters * hMeters)).toFixed(2);
+      document.getElementById('bmi-badge').textContent = `Current BMI: ${bmi}`;
+
+      const diff = (latest - start).toFixed(1);
+      document.getElementById('total-gained-badge').textContent = `${diff >= 0 ? '+' : ''}${diff} kg From Start`;
+
+      const tbody = document.getElementById('weight-history-tbody');
+      tbody.innerHTML = weights.slice().reverse().map((w, idx, arr) => {
+        const prev = arr[idx + 1];
+        const delta = prev ? (w.weight - prev.weight).toFixed(1) : '0.0';
+        const deltaHtml = !prev
+          ? '<span class="text-slate-500">Baseline</span>'
+          : Number(delta) > 0
+          ? `<span class="text-emerald-400 font-bold">+${delta} kg 🔥</span>`
+          : Number(delta) < 0
+          ? `<span class="text-rose-400 font-bold">${delta} kg</span>`
+          : `<span class="text-slate-400">0.0 kg</span>`;
+        const rowBmi = (w.weight / (hMeters * hMeters)).toFixed(1);
+
+        return `
+          <tr class="hover:bg-slate-900/50">
+            <td class="py-3 px-3 font-medium text-slate-300">${w.date}</td>
+            <td class="py-3 px-3 font-extrabold text-white">${w.weight.toFixed(1)} kg</td>
+            <td class="py-3 px-3">${deltaHtml}</td>
+            <td class="py-3 px-3 text-slate-400">${rowBmi}</td>
+            <td class="py-3 px-3 text-xs text-slate-400">${w.note || '—'}</td>
+            <td class="py-3 px-3 text-right">
+              ${weights.length > 1 ? `<button onclick="deleteWeightEntry('${w.id}')" class="text-slate-500 hover:text-rose-400 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>` : ''}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function deleteWeightEntry(wId) {
+      appState.weightLogs = appState.weightLogs.filter(w => w.id !== wId);
+      saveState();
+      renderAll();
+      renderCharts();
+      showToast('Weigh-in entry deleted.', 'warning');
+    }
+
+    function renderRewardsSection() {
+      const stats = calculateGamificationStats();
+      const latestW = stats.latestWeight;
+
+      // Render Real-World Reward Vault
+      const rewardsEl = document.getElementById('real-rewards-list');
+      rewardsEl.innerHTML = appState.customRewards.map(rw => {
+        const unlocked = latestW >= rw.targetKg;
+        const rem = (rw.targetKg - latestW).toFixed(1);
+        return `
+          <div class="p-3.5 rounded-xl border ${unlocked ? 'bg-amber-500/15 border-amber-400/60' : 'bg-slate-900/90 border-slate-800'} transition">
+            <div class="flex items-center justify-between gap-2 mb-1">
+              <span class="text-xs font-extrabold ${unlocked ? 'text-amber-300' : 'text-slate-400'}">
+                ${unlocked ? '🔓 UNLOCKED AT ' + rw.targetKg + ' KG!' : '🔒 Target: ' + rw.targetKg + ' kg (' + rem + ' kg to go)'}
+              </span>
+              ${unlocked ? '<span class="px-2 py-0.5 rounded bg-amber-400 text-slate-950 text-[10px] font-extrabold">CLAIMABLE</span>' : ''}
+            </div>
+            <p class="text-sm font-bold text-white">${rw.title}</p>
+            <p class="text-xs text-slate-400 mt-0.5">${rw.desc || 'Earned through pure consistency!'}</p>
+          </div>
+        `;
+      }).join('');
+
+      // Render 8 Unlockable Physique Trophies
+      const trophies = [
+        { id: 't1', title: 'First Surplus Day', desc: 'Hit 2,450+ kcal in a single day', unlocked: stats.surplusDays >= 1, icon: 'flame' },
+        { id: 't2', title: 'Iron Ground Initiation', desc: 'Complete your first ground strength workout', unlocked: stats.totalWorkoutSets >= 5, icon: 'dumbbell' },
+        { id: 't3', title: 'First Kilogram Gained', desc: 'Reach 49.0 kg on the morning scale', unlocked: latestW >= 49.0, icon: 'trending-up' },
+        { id: 't4', title: '50 KG Club', desc: 'Break into the 50s — visibly fuller shoulders & arms', unlocked: latestW >= 50.0, icon: 'shield' },
+        { id: 't5', title: 'Sept Peak Reclaimed (52 kg)', desc: 'Defeat your post-illness weight loss completely!', unlocked: latestW >= 52.0, icon: 'crown' },
+        { id: 't6', title: '7-Day Anabolic Streak', desc: 'Hit your daily calorie surplus 7 times', unlocked: stats.surplusDays >= 7, icon: 'zap' },
+        { id: 't7', title: '55 KG Athletic Frame', desc: 'New year promise fulfilled — strong V-taper', unlocked: latestW >= 55.0, icon: 'award' },
+        { id: 't8', title: '59 KG Iron Physique', desc: 'Ultimate transformation goal conquered!', unlocked: latestW >= 58.5, icon: 'trophy' }
+      ];
+
+      const unlockedCount = trophies.filter(t => t.unlocked).length;
+      document.getElementById('trophy-count-badge').textContent = `${unlockedCount} / ${trophies.length} Unlocked`;
+
+      const trophiesGrid = document.getElementById('trophies-grid');
+      trophiesGrid.innerHTML = trophies.map(t => `
+        <div class="p-4 rounded-2xl border flex items-start gap-3.5 transition ${t.unlocked
+          ? 'bg-gradient-to-br from-emerald-500/15 via-slate-900 to-amber-500/10 border-emerald-500/50 shadow-lg'
+          : 'bg-slate-950/60 border-slate-800/80 opacity-60'}">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${t.unlocked
+            ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-slate-950 shadow-md'
+            : 'bg-slate-800 text-slate-500'}">
+            <i data-lucide="${t.icon}" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h4 class="text-sm font-bold ${t.unlocked ? 'text-white' : 'text-slate-400'}">${t.title}</h4>
+              ${t.unlocked ? '<span class="text-[10px] font-extrabold text-emerald-400">✓ EARNED</span>' : ''}
+            </div>
+            <p class="text-xs text-slate-400 mt-1">${t.desc}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // =========================================================================
+    // 9. CHARTS & TIMELINE
+    // =========================================================================
+    function renderCharts() {
+      const weights = getSortedWeights();
+      const weightLabels = weights.map(w => w.date);
+      const weightData = weights.map(w => w.weight);
+
+      const ctxW = document.getElementById('weightChart').getContext('2d');
+      if (weightChartInstance) weightChartInstance.destroy();
+      weightChartInstance = new Chart(ctxW, {
+        type: 'line',
+        data: {
+          labels: weightLabels,
+          datasets: [
+            {
+              label: 'Body Weight (kg)',
+              data: weightData,
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.18)',
+              borderWidth: 3,
+              pointBackgroundColor: '#10b981',
+              pointRadius: 5,
+              fill: true,
+              tension: 0.3
+            },
+            {
+              label: 'Sept Peak Milestone (52kg)',
+              data: weightLabels.map(() => appState.targets.milestoneWeight),
+              borderColor: 'rgba(245, 158, 11, 0.7)',
+              borderDash: [6, 6],
+              borderWidth: 1.5,
+              pointRadius: 0,
+              fill: false
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#cbd5e1', font: { size: 11 } } } },
+          scales: {
+            x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(51,65,85,0.3)' } },
+            y: { suggestedMin: 46, suggestedMax: 61, ticks: { color: '#94a3b8', font: { size: 11 } }, grid: { color: 'rgba(51,65,85,0.3)' } }
+          }
+        }
+      });
+
+      const last14Labels = [];
+      const last14Calories = [];
+      const last14Protein = [];
+      const base = new Date(selectedDate + 'T00:00:00');
+
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date(base);
+        d.setDate(d.getDate() - i);
+        const iso = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+        const totals = getDayNutritionTotals(iso);
+        last14Labels.push(iso.slice(5));
+        last14Calories.push(Math.round(totals.calories));
+        last14Protein.push(Math.round(totals.protein));
+      }
+
+      const ctxC = document.getElementById('calorieChart').getContext('2d');
+      if (calorieChartInstance) calorieChartInstance.destroy();
+      calorieChartInstance = new Chart(ctxC, {
+        type: 'bar',
+        data: {
+          labels: last14Labels,
+          datasets: [
+            {
+              label: 'Calories Eaten (kcal)',
+              data: last14Calories,
+              backgroundColor: last14Calories.map(v => v >= appState.targets.calories ? '#10b981' : '#f59e0b'),
+              borderRadius: 6
+            },
+            {
+              type: 'line',
+              label: `Target (${appState.targets.calories} kcal)`,
+              data: last14Labels.map(() => appState.targets.calories),
+              borderColor: '#38bdf8',
+              borderDash: [5, 5],
+              borderWidth: 2,
+              pointRadius: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#cbd5e1', font: { size: 11 } } } },
+          scales: {
+            x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(51,65,85,0.3)' } }
+          }
+        }
+      });
+
+      const ctxP = document.getElementById('proteinChart').getContext('2d');
+      if (proteinChartInstance) proteinChartInstance.destroy();
+      proteinChartInstance = new Chart(ctxP, {
+        type: 'bar',
+        data: {
+          labels: last14Labels,
+          datasets: [
+            {
+              label: 'Protein Intake (g)',
+              data: last14Protein,
+              backgroundColor: '#0ea5e9',
+              borderRadius: 6
+            },
+            {
+              type: 'line',
+              label: `Target (${appState.targets.protein}g)`,
+              data: last14Labels.map(() => appState.targets.protein),
+              borderColor: '#10b981',
+              borderDash: [5, 5],
+              borderWidth: 2,
+              pointRadius: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: '#cbd5e1', font: { size: 11 } } } },
+          scales: {
+            x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { color: 'rgba(51,65,85,0.3)' } }
+          }
+        }
+      });
+    }
+
+    function renderTimeline() {
+      const dates = Object.keys(appState.dailyLogs).sort((a, b) => b.localeCompare(a));
+      let totalMeals = 0;
+      let totalWorkouts = 0;
+      let activeDays = 0;
+
+      const itemsHtml = dates.map(dateStr => {
+        const log = appState.dailyLogs[dateStr];
+        const totals = getDayNutritionTotals(dateStr);
+        const wCount = log.workouts.length;
+        const fCount = log.foods.length;
+
+        if (fCount > 0 || wCount > 0) activeDays++;
+        totalMeals += fCount;
+        totalWorkouts += wCount;
+
+        const weightMatch = appState.weightLogs.find(w => w.date === dateStr);
+        if (fCount === 0 && wCount === 0 && !weightMatch) return '';
+
+        const calHit = totals.calories >= appState.targets.calories;
+        return `
+          <div class="p-4 rounded-xl bg-slate-900/90 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-sm font-extrabold text-white">${formatFriendlyDate(dateStr)} (${dateStr})</span>
+                ${calHit ? '<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-emerald-500/20 text-emerald-400">SURPLUS HIT</span>' : ''}
+                ${wCount > 0 ? `<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-sky-500/20 text-sky-400">💪 ${wCount} Exercises</span>` : ''}
+                ${weightMatch ? `<span class="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-500/20 text-amber-400">⚖️ Scale: ${weightMatch.weight} kg</span>` : ''}
+              </div>
+              <p class="text-xs text-slate-400 mt-1">
+                Fuel: <span class="text-white font-semibold">${Math.round(totals.calories)} kcal</span> •
+                Protein: <span class="text-sky-400 font-semibold">${Math.round(totals.protein)}g</span> •
+                Carbs: ${Math.round(totals.carbs)}g • Fats: ${Math.round(totals.fats)}g
+              </p>
+            </div>
+            <button onclick="jumpToDate('${dateStr}')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 shrink-0 self-start sm:self-center">
+              View / Edit Day
+            </button>
+          </div>
+        `;
+      }).filter(Boolean).join('');
+
+      document.getElementById('stat-days-logged').textContent = `${activeDays} days`;
+      document.getElementById('stat-meals-logged').textContent = `${totalMeals} items`;
+      document.getElementById('stat-workouts-logged').textContent = `${totalWorkouts} exercises`;
+
+      const feedEl = document.getElementById('journey-timeline-feed');
+      feedEl.innerHTML = itemsHtml || `<p class="text-sm text-slate-400 text-center py-6">Your daily transformation entries will appear here as you log meals and workouts.</p>`;
+    }
+
+    function jumpToDate(dateStr) {
+      selectedDate = dateStr;
+      document.getElementById('active-date-picker').value = selectedDate;
+      switchTab('nutrition');
+      renderAll();
+    }
+
+    function exportBackupJSON() {
+      const dataStr = JSON.stringify(appState, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `IronRebound_Backup_${getTodayISO()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast('Full JSON backup downloaded!');
+    }
+
+    function importBackupJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (!imported.targets || !imported.dailyLogs) throw new Error('Invalid backup format');
+          appState = imported;
+          saveState();
+          renderAll();
+          renderCharts();
+          renderTimeline();
+          showToast('Backup restored successfully!');
+        } catch (err) {
+          showToast('Invalid JSON backup file.', 'error');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function copySummaryToClipboard() {
+      const stats = calculateGamificationStats();
+      const totals = getDayNutritionTotals(selectedDate);
+      const summary = `IRON REBOUND Progress (${selectedDate}):\n• Rank: Level ${stats.level} (${stats.rankName}) — ${stats.xp} XP\n• Scale Weight: ${stats.latestWeight.toFixed(1)} kg (Goal: ${appState.targets.goalWeight} kg)\n• Today's Fuel: ${Math.round(totals.calories)}/${appState.targets.calories} kcal | ${Math.round(totals.protein)}/${appState.targets.protein}g Protein`;
+
+      const temp = document.createElement('textarea');
+      temp.value = summary;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      temp.remove();
+      showToast('Progress summary copied to clipboard!');
+    }
+
+    // =========================================================================
+    // 10. MODALS & FORM SUBMISSIONS
+    // =========================================================================
+    function openTargetsModal() {
+      const t = appState.targets;
+      document.getElementById('set-calories').value = t.calories;
+      document.getElementById('set-protein').value = t.protein;
+      document.getElementById('set-carbs').value = t.carbs;
+      document.getElementById('set-fats').value = t.fats;
+      document.getElementById('set-milestone').value = t.milestoneWeight;
+      document.getElementById('set-goal-weight').value = t.goalWeight;
+
+      const modal = document.getElementById('targets-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeTargetsModal() {
+      const modal = document.getElementById('targets-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    document.getElementById('targets-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      appState.targets.calories = Number(document.getElementById('set-calories').value);
+      appState.targets.protein = Number(document.getElementById('set-protein').value);
+      appState.targets.carbs = Number(document.getElementById('set-carbs').value);
+      appState.targets.fats = Number(document.getElementById('set-fats').value);
+      appState.targets.milestoneWeight = Number(document.getElementById('set-milestone').value);
+      appState.targets.goalWeight = Number(document.getElementById('set-goal-weight').value);
+      saveState();
+      closeTargetsModal();
+      renderAll();
+      showToast('Fixed daily nutrition & physique goals updated!');
+    });
+
+    document.getElementById('custom-food-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('food-name').value.trim();
+      const cal = Number(document.getElementById('food-cal').value);
+      const prot = Number(document.getElementById('food-prot').value);
+      const carbs = Number(document.getElementById('food-carbs').value || 0);
+      const fats = Number(document.getElementById('food-fats').value || 0);
+      const savePreset = document.getElementById('save-as-preset').checked;
+
+      if (savePreset) {
+        appState.presets.unshift({
+          id: 'p_' + Date.now(), name, calories: cal, protein: prot, carbs, fats, tag: 'Custom'
+        });
+      }
+
+      addFoodEntry(name, cal, prot, carbs, fats);
+      e.target.reset();
+    });
+
+    document.getElementById('workout-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('ex-name').value.trim();
+      const sets = Number(document.getElementById('ex-sets').value);
+      const reps = document.getElementById('ex-reps').value.trim();
+      const burn = Number(document.getElementById('ex-cal').value || 0);
+      const notes = document.getElementById('ex-notes').value.trim();
+
+      addWorkoutEntry(name, sets, reps, burn, notes);
+      document.getElementById('ex-name').value = '';
+      document.getElementById('ex-notes').value = '';
+    });
+
+    document.getElementById('weight-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const date = document.getElementById('weight-date').value;
+      const weight = Number(document.getElementById('weight-val').value);
+      const note = document.getElementById('weight-note').value.trim();
+
+      const prevWeights = getSortedWeights();
+      const prevMax = prevWeights.length ? Math.max(...prevWeights.map(w => w.weight)) : 48.0;
+
+      const existingIdx = appState.weightLogs.findIndex(w => w.date === date);
+      if (existingIdx >= 0) {
+        appState.weightLogs[existingIdx].weight = weight;
+        appState.weightLogs[existingIdx].note = note;
+      } else {
+        appState.weightLogs.push({ id: 'w_' + Date.now(), date, weight, note });
+      }
+
+      saveState();
+      renderAll();
+      renderCharts();
+      renderRewardsSection();
+
+      // Celebrate scale gains!
+      if (weight > prevMax) {
+        const gained = (weight - prevMax).toFixed(1);
+        const unlockedReward = appState.customRewards.find(r => weight >= r.targetKg && prevMax < r.targetKg);
+        openCelebrationModal(
+          `NEW RECORD • +${gained} KG`,
+          `SCALE HIT ${weight.toFixed(1)} KG!`,
+          `Real muscle mass added to your frame! Your shoulders, chest, and legs are filling out from your 6-feed surplus and ground workouts.`,
+          unlockedReward
+            ? `🎁 REWARD UNLOCKED: ${unlockedReward.title}!`
+            : `🔥 +300 Mass XP Earned! Keep pushing toward ${appState.targets.milestoneWeight} kg!`
+        );
+      } else {
+        showToast(`Weekly scale check saved: ${weight.toFixed(1)} kg!`);
+      }
+
+      document.getElementById('weight-val').value = '';
+      document.getElementById('weight-note').value = '';
+    });
+
+    document.getElementById('custom-reward-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = document.getElementById('reward-title-input').value.trim();
+      const targetKg = Number(document.getElementById('reward-kg-input').value);
+      appState.customRewards.push({
+        id: 'rw_' + Date.now(),
+        targetKg,
+        title,
+        desc: 'Personal milestone reward'
+      });
+      appState.customRewards.sort((a, b) => a.targetKg - b.targetKg);
+      saveState();
+      renderRewardsSection();
+      e.target.reset();
+      showToast(`Reward added for ${targetKg} kg milestone!`);
+    });
+
+    document.getElementById('active-date-picker').addEventListener('change', (e) => {
+      if (e.target.value) {
+        selectedDate = e.target.value;
+        renderAll();
+      }
+    });
+
+    // =========================================================================
+    // 11. MASTER RENDER & INITIALIZATION
+    // =========================================================================
+    function renderAll() {
+      renderHeroAndGamification();
+      renderNutritionSection();
+      renderWorkoutSection();
+      renderWeightStats();
+      updateSmartReminder();
+      lucide.createIcons();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('active-date-picker').value = selectedDate;
+      document.getElementById('weight-date').value = selectedDate;
+      renderAll();
+
+      setInterval(() => {
+        if (appState.remindersEnabled) {
+          const totals = getDayNutritionTotals(getTodayISO());
+          if (totals.calories < appState.targets.calories) {
+            updateSmartReminder();
+            playGentleChime();
+            showToast('Time for a small calorie-dense feed to grow stronger!', 'warning');
+          }
+        }
+      }, 30 * 60 * 1000);
+    });
+  </script>
+</body>
+</html>
